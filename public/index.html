@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시스템 리소스 실시간 모니터링</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- html2canvas for charts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <header class="header">
+            <h1>🖥️ 시스템 리소스 실시간 모니터링 시스템</h1>
+            <p class="subtitle">Real-time System Resource Monitoring</p>
+        </header>
+
+        <!-- 제어 패널 -->
+        <section class="control-panel">
+            <div class="control-buttons">
+                <button id="startBtn" class="btn btn-start">▶️ 모니터링 시작</button>
+                <button id="stopBtn" class="btn btn-stop" disabled>⏸️ 모니터링 중지</button>
+                <button id="pdfBtn" class="btn btn-pdf" disabled>📄 PDF 보고서 생성</button>
+                <button id="clearBtn" class="btn btn-clear">🗑️ 데이터 초기화</button>
+            </div>
+            <div class="status-info">
+                <div class="timer">
+                    <span class="label">경과 시간:</span>
+                    <span id="timer" class="value">0초 / 300초</span>
+                </div>
+                <div class="status">
+                    <span class="label">상태:</span>
+                    <span id="status" class="value">대기 중</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 시스템 정보 -->
+        <section class="system-info" id="systemInfo">
+            <h2>💻 시스템 정보</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">운영체제:</span>
+                    <span id="os" class="info-value">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">CPU:</span>
+                    <span id="cpuModel" class="info-value">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">CPU 코어:</span>
+                    <span id="cpuCores" class="info-value">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">총 메모리:</span>
+                    <span id="totalMemory" class="info-value">-</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 실시간 대시보드 -->
+        <section class="dashboard">
+            <h2>📊 실시간 리소스 현황</h2>
+            <div class="metrics-grid">
+                <div class="metric-card cpu">
+                    <div class="metric-icon">🔴</div>
+                    <div class="metric-content">
+                        <h3>CPU 사용률</h3>
+                        <p class="metric-value" id="cpuValue">0.00%</p>
+                    </div>
+                </div>
+                <div class="metric-card memory">
+                    <div class="metric-icon">🔵</div>
+                    <div class="metric-content">
+                        <h3>메모리 사용률</h3>
+                        <p class="metric-value" id="memoryValue">0.00%</p>
+                        <p class="metric-detail" id="memoryDetail">0.00 GB / 0.00 GB</p>
+                    </div>
+                </div>
+                <div class="metric-card disk">
+                    <div class="metric-icon">🟣</div>
+                    <div class="metric-content">
+                        <h3>디스크 I/O</h3>
+                        <p class="metric-value" id="diskValue">0.00 / 0.00 MB/s</p>
+                        <p class="metric-detail">읽기 / 쓰기</p>
+                    </div>
+                </div>
+                <div class="metric-card network">
+                    <div class="metric-icon">🟢</div>
+                    <div class="metric-content">
+                        <h3>네트워크</h3>
+                        <p class="metric-value" id="netValue">0.00 / 0.00 MB/s</p>
+                        <p class="metric-detail">송신 / 수신</p>
+                    </div>
+                </div>
+                <div class="metric-card temp">
+                    <div class="metric-icon">🌡️</div>
+                    <div class="metric-content">
+                        <h3>CPU 온도</h3>
+                        <p class="metric-value" id="tempValue">N/A</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 실시간 그래프 -->
+        <section class="charts">
+            <h2>📈 실시간 그래프</h2>
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <canvas id="cpuChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="memoryChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="networkChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="diskChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Top 프로세스 -->
+        <section class="processes">
+            <h2>🔝 Top 5 프로세스</h2>
+            <div class="process-tables">
+                <div class="process-table">
+                    <h3>CPU 사용률 Top 5</h3>
+                    <table id="cpuProcessTable">
+                        <thead>
+                            <tr>
+                                <th>PID</th>
+                                <th>프로세스</th>
+                                <th>CPU (%)</th>
+                                <th>메모리 (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="4">데이터 없음</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="process-table">
+                    <h3>메모리 사용률 Top 5</h3>
+                    <table id="memProcessTable">
+                        <thead>
+                            <tr>
+                                <th>PID</th>
+                                <th>프로세스</th>
+                                <th>CPU (%)</th>
+                                <th>메모리 (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="4">데이터 없음</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 푸터 -->
+        <footer class="footer">
+            <p>System Resource Monitoring v1.0 | Made with HTML, CSS, JavaScript</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
